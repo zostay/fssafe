@@ -5,26 +5,32 @@ import (
 	"io"
 )
 
+// TestingReader provides an in-memory reader for testing.
 type TestingReader struct {
-	*bytes.Reader
-	Closed bool
+	*bytes.Reader      // the in-memory reader
+	Closed        bool // whether the reader has been closed
 }
 
+// Close marks the reader as closed.
 func (t *TestingReader) Close() error { t.Closed = true; return nil }
 
+// TestingWriter provides an in-memory writer for testing.
 type TestingWriter struct {
-	*bytes.Buffer
-	Closed bool
+	*bytes.Buffer      // the in-memory writer
+	Closed        bool // whether the writer has been closed
 }
 
+// Close marks the writer as closed.
 func (t *TestingWriter) Close() error { t.Closed = true; return nil }
 
+// TestingLoaderSaver provides an in-memory loader and saver for testing.
 type TestingLoaderSaver struct {
 	BasicLoaderSaver
 	Readers []*TestingReader
 	Writers []*TestingWriter
 }
 
+// NewTestingLoaderSaver returns a new, blank TestingLoaderSaver.
 func NewTestingLoaderSaver() *TestingLoaderSaver {
 	rs := make([]*TestingReader, 0)
 	ws := make([]*TestingWriter, 0)

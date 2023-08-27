@@ -1,4 +1,4 @@
-WIP  TBD
+v0.1.1  2023-08-26
 
  * Restored the functionality previously intended to be provided by Readers and Writers accessors on test loaders/saver, but in a way that should actually work.
  * Adds the CurrentReader method to TestingLoaderSaver.

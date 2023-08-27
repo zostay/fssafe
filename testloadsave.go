@@ -3,6 +3,7 @@ package fssafe
 import (
 	"bytes"
 	"io"
+	"os"
 )
 
 // TestingReader provides an in-memory reader for testing.
@@ -18,38 +19,48 @@ func (t *TestingReader) Close() error { t.Closed = true; return nil }
 type TestingWriter struct {
 	*bytes.Buffer      // the in-memory writer
 	Closed        bool // whether the writer has been closed
+	final         **bytes.Buffer
+	bufferList    *[]*bytes.Buffer
 }
 
 // Close marks the writer as closed.
-func (t *TestingWriter) Close() error { t.Closed = true; return nil }
+func (t *TestingWriter) Close() error {
+	*t.final = t.Buffer
+	*t.bufferList = append(*t.bufferList, t.Buffer)
+	t.Closed = true
+	return nil
+}
 
 // TestingLoaderSaver provides an in-memory loader and saver for testing.
 type TestingLoaderSaver struct {
 	BasicLoaderSaver
-	Readers []*TestingReader
-	Writers []*TestingWriter
+	bufferList *[]*bytes.Buffer
+}
+
+func (t *TestingLoaderSaver) Buffers() []*bytes.Buffer {
+	return *t.bufferList
 }
 
 // NewTestingLoaderSaver returns a new, blank TestingLoaderSaver.
 func NewTestingLoaderSaver() *TestingLoaderSaver {
-	rs := make([]*TestingReader, 0)
-	ws := make([]*TestingWriter, 0)
-
 	var buf *bytes.Buffer
 	loader := func() (io.ReadCloser, error) {
+		if buf == nil {
+			return nil, os.ErrNotExist
+		}
+
 		r := &TestingReader{bytes.NewReader(buf.Bytes()), false}
-		rs = append(rs, r)
 		return r, nil
 	}
 
+	bufferList := []*bytes.Buffer{}
 	saver := func() (io.WriteCloser, error) {
-		buf = new(bytes.Buffer)
-		w := &TestingWriter{buf, false}
-		ws = append(ws, w)
+		inProgress := &bytes.Buffer{}
+		w := &TestingWriter{inProgress, false, &buf, &bufferList}
 		return w, nil
 	}
 
-	ls := TestingLoaderSaver{BasicLoaderSaver{loader, saver}, rs, ws}
+	ls := TestingLoaderSaver{BasicLoaderSaver{loader, saver}, &bufferList}
 
 	return &ls
 }

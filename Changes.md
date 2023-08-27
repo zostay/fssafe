@@ -1,4 +1,4 @@
-WIP  TBD
+v0.1.0  2023-08-26
 
  * Rewrote TestLoaderSaver so that loader fails before saver runs and also provides a list of Buffers once saver's writer is closed. This behaves as a better analog of the file system loader/saver as well.
  * Added a test for the test loader/saver.
